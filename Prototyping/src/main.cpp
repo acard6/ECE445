@@ -2,7 +2,10 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
-
+#include <cstdint>
+#include <driver/uart.h>
+#include <string.h>
+#include <time.h>
 
   #define ORANGE 1
   #define GREEN 2
@@ -19,9 +22,15 @@
   #define MIN_INTERVAL  2000
   #define TIMEOUT UINT32_MAX
 
+  #define BUF_SIZE 1024
   // put function declarations here:
   // int myFunction(int, int);
+  
+
+
+
   void butt_count();
+  void hum_to_led(uint8_t h);
 
   int counter = 0x0;
   DHT dht(DHTPIN, DHTTYPE);
@@ -45,71 +54,48 @@
 
   void loop() {
     // void butt_count();
-    delay(2000);
-    float h = dht.readHumidity();
+    delay(500);
+    time_t start = time(NULL);
+    float H = dht.readHumidity();
+    time_t end = time(NULL);
     float t = dht.readTemperature();
     float f = dht.readTemperature(true);
 
+    Serial.println(end - start);
 
-    Serial.print("humidity is(%):");
-    Serial.print(h);
-    Serial.print(" %\n");
-    Serial.print("temperatire is(%):");
-    Serial.print(t);
-    Serial.print(" *C\t");
-    Serial.print(f);
-    Serial.print(" *F\n");
+    while (Serial.available() == 0) {
+    }
 
-    if (t > 18){
+    int read = Serial.parseInt();
+    if (read == 1){
+
+      Serial.print("humidity is(%):");
+      Serial.print(H);
+      Serial.print(" %\t");
+      Serial.print("temperatire is(%):");
+      Serial.print(t);
+      Serial.print(" *C\t");
+      Serial.print(f);
+      Serial.print(" *F\n");    
+    
+      H /= 3;
+      uint8_t h = (uint8_t)H;
+      hum_to_led(h);
+      
       digitalWrite(TEMP_LED, HIGH);
+
+      delay(10000);
     }
     else{
       digitalWrite(TEMP_LED, LOW);
-    }
-
-    h *= 100;
-    if(h < 20){
-      digitalWrite(ORANGE, LOW);
-      digitalWrite(GREEN, LOW);
-      digitalWrite(YELLOW, LOW);
-      digitalWrite(WHITE, LOW);
-      digitalWrite(BLUE, HIGH);
-    }
-
-    else if(20 <= h < 40){
-      digitalWrite(ORANGE, LOW);
-      digitalWrite(GREEN, LOW);
-      digitalWrite(YELLOW, LOW);
-      digitalWrite(WHITE, HIGH);
       digitalWrite(BLUE, LOW);
-    }
-
-    else if(40 <= h < 60){
-      digitalWrite(ORANGE, LOW);
+      digitalWrite(WHITE, LOW);
       digitalWrite(GREEN, LOW);
-      digitalWrite(YELLOW, HIGH);
-      digitalWrite(WHITE, LOW);
-      digitalWrite(BLUE, LOW);
-    }
-
-    else if(60 <= h < 80){
       digitalWrite(ORANGE, LOW);
-      digitalWrite(GREEN, HIGH);
       digitalWrite(YELLOW, LOW);
-      digitalWrite(WHITE, LOW);
-      digitalWrite(BLUE, LOW);
-    }
-
-    else if(80 <= h){
-      digitalWrite(ORANGE, LOW);
-      digitalWrite(GREEN, LOW);
-      digitalWrite(YELLOW, LOW);
-      digitalWrite(WHITE, LOW);
-      digitalWrite(BLUE, HIGH);
+      
     }
   }
-
-
 
 // put function definitions here:
 /*
@@ -117,6 +103,32 @@ int myFunction(int x, int y) {
   return x + y;
 }
 */
+    void hum_to_led(uint8_t h){
+      if ((h&1) == 1)
+        digitalWrite(ORANGE, HIGH);
+      else
+        digitalWrite(ORANGE, LOW);
+    
+      if (((h>>1)&1) == 1)
+        digitalWrite(GREEN, HIGH);
+      else
+        digitalWrite(GREEN, LOW);
+
+      if (((h>>2)&1) == 1)
+        digitalWrite(YELLOW, HIGH);
+      else
+        digitalWrite(YELLOW, LOW);
+
+      if (((h>>3)&1) == 1)
+        digitalWrite(WHITE, HIGH);
+      else
+        digitalWrite(WHITE, LOW);
+
+      if (((h>>4)&1) == 1)
+        digitalWrite(BLUE, HIGH);
+      else
+        digitalWrite(BLUE, LOW);
+    }
 
   void butt_count(){
     if (digitalRead(BUTTON) == HIGH){
