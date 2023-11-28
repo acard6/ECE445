@@ -46,6 +46,7 @@ DHT dht2(DHTPIN2, DHTTYPE);
 Adafruit_MAX31855 temp9(SCK, CS9, SO);
 Adafruit_MAX31855 MUX(SCK, G2B, SO);
 
+double temp_c;
 //  _________         _________ 
 //  | 13  14 |        |  4   5 |
 //  | 12  21 |        |  3   6 |
@@ -106,16 +107,17 @@ void loop() {
 
   /* get lone thermocouple */
   if (read == 9){
-    double c = temp9.readCelsius();       // temp sensor U13 temp reading
+    temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
+    temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
+    temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
     Serial.print("temp sensor:\t temp:");
-    Serial.print(c);
+    Serial.print(temp_c);
     Serial.println(" *C");
   }
   /* get thermocouples in MUX data */
   if (10 <= read && read <18){
     uint8_t i = read % 10;
-    double temp_c;
-    //setMuxChannel(i);
+    setMuxChannel(i);
     if (i == 0){
       digitalWrite(A, LOW);
       digitalWrite(B, LOW);
@@ -156,9 +158,10 @@ void loop() {
       digitalWrite(B, HIGH);
       digitalWrite(C, HIGH);
     }
-    temp_c = MUX.readCelsius();
     delay(5);
-    //digitalWrite(G2B, HIGH);
+    temp_c = MUX.readCelsius();
+    temp_c = MUX.readCelsius();
+    temp_c = MUX.readCelsius();
     printTemp(temp_c, i);
   }
 
@@ -168,6 +171,7 @@ void loop() {
     powerBoard(read);
   }
 
+  delay(100);
 }
 
 void getHumData(){
@@ -213,7 +217,7 @@ void setMuxChannel(int channel) {
   digitalWrite(B, ((channel >> 1) & 1));
   digitalWrite(C, ((channel >> 2) & 1));
   //digitalWrite(G2B, LOW);
-  delay(1);
+  delay(100);
 }
 
 /* Print temperature values from MUX thermos  */
