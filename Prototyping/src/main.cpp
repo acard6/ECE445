@@ -44,14 +44,8 @@ DHT dht1(DHTPIN1, DHTTYPE);
 DHT dht2(DHTPIN2, DHTTYPE);
 
 Adafruit_MAX31855 temp9(SCK, CS9, SO);
-Adafruit_MAX31855 temp7(SCK, dummy, SO);
-// Adafruit_MAX31855 temp6(SCK, dummy, SO);
-// Adafruit_MAX31855 temp5(SCK, dummy, SO);
-// Adafruit_MAX31855 temp4(SCK, dummy, SO);
-// Adafruit_MAX31855 temp3(SCK, dummy, SO);
-// Adafruit_MAX31855 temp2(SCK, dummy, SO);
-// Adafruit_MAX31855 temp1(SCK, dummy, SO);
-// Adafruit_MAX31855 temp0(SCK, dummy, SO);
+Adafruit_MAX31855 MUX(SCK, G2B, SO);
+
 //  _________         _________ 
 //  | 13  14 |        |  4   5 |
 //  | 12  21 |        |  3   6 |
@@ -65,7 +59,7 @@ void setup() {
   /* -----set pins to I/O----- */
   pinMode(SO, INPUT);      // input         data bus for temp sensors
   pinMode(SCK, OUTPUT);    // output        clock bus for temp sensors
-  pinMode(CS9, OUTPUT);    // output        chip select for temp sensor not connected by mux
+  // pinMode(CS9, OUTPUT);    // output        chip select for temp sensor not connected by mux
   pinMode(A, OUTPUT);      // output        3:8 mux chip select for temp sensors
   pinMode(B, OUTPUT);      // output        3:8 mux chip select for temp sensors
   pinMode(C, OUTPUT);      // output        3:8 mux chip select for temp sensors
@@ -85,13 +79,13 @@ void setup() {
   pinMode(SUB8, OUTPUT);   // input/output  pinhears on main board
   /* -----initialize out pins----- */
   digitalWrite(G1, HIGH);   // based on sn74hc138 data sheet so that no sensors has cs enabled
-  digitalWrite(G2B, LOW);   // based on sn74hc138 data sheet so that no sensors has cs enabled
+  //digitalWrite(G2B, HIGH);   // based on sn74hc138 data sheet so that no sensors has cs enabled
   digitalWrite(G2A, LOW);   // based on sn74hc138 data sheet so that no sensors has cs enableds
   Serial.println("Flashed & Running.");
   dht1.begin();
   // dht2.begin();
   temp9.begin();    // U13 sensor
-  temp7.begin();    // U12 sensor
+  MUX.begin();    // U12 sensor
 //  temp6.begin();    // U11 sensor
 //  temp5.begin();    // U10 sensor
 //  temp4.begin();    // U9 sensor
@@ -120,33 +114,51 @@ void loop() {
   /* get thermocouples in MUX data */
   if (10 <= read && read <18){
     uint8_t i = read % 10;
-    float temp_c;
-    setMuxChannel(i);
+    double temp_c;
+    //setMuxChannel(i);
     if (i == 0){
-      // temp_c = temp0.readCelsius();
+      digitalWrite(A, LOW);
+      digitalWrite(B, LOW);
+      digitalWrite(C, LOW);
     }
     if (i == 1){
-      //temp_c = temp1.readCelsius();
+      digitalWrite(A, HIGH);
+      digitalWrite(B, LOW);
+      digitalWrite(C, LOW);
     }
     if (i == 2){
-      //temp_c = temp2.readCelsius();
+      digitalWrite(A, LOW);
+      digitalWrite(B, HIGH);
+      digitalWrite(C, LOW);
     }
     if (i == 3){
-      //temp_c = temp3.readCelsius();
+      digitalWrite(A, HIGH);
+      digitalWrite(B, HIGH);
+      digitalWrite(C, LOW);
     }
     if (i == 4){
-      //temp_c = temp4.readCelsius();
+      digitalWrite(A, LOW);
+      digitalWrite(B, LOW);
+      digitalWrite(C, HIGH);
     }
     if (i == 5){
-      //temp_c = temp5.readCelsius();
+      digitalWrite(A, HIGH);
+      digitalWrite(B, LOW);
+      digitalWrite(C, HIGH);
     }
     if (i == 6){
-      //temp_c = temp6.readCelsius();
+      digitalWrite(A, LOW);
+      digitalWrite(B, HIGH);
+      digitalWrite(C, HIGH);
     }
     if (i == 7){
-      //temp_c = temp7.readCelsius();
+      digitalWrite(A, HIGH);
+      digitalWrite(B, HIGH);
+      digitalWrite(C, HIGH);
     }
-    digitalWrite(G2B, HIGH);
+    temp_c = MUX.readCelsius();
+    delay(5);
+    //digitalWrite(G2B, HIGH);
     printTemp(temp_c, i);
   }
 
@@ -159,8 +171,8 @@ void loop() {
 }
 
 void getHumData(){
-  float H = dht1.readHumidity();        // humidity sensor J10 humidity reading
-  float t = dht1.readTemperature();     // humidity sensot J10 temp reading in *C
+  double H = dht1.readHumidity();        // humidity sensor J10 humidity reading
+  double t = dht1.readTemperature();     // humidity sensot J10 temp reading in *C
  
   Serial.print("humidity:");
   Serial.print(H);
@@ -197,18 +209,18 @@ void powerBoard(int read){
 
 /* Set MUX to select the desired channel */
 void setMuxChannel(int channel) {
-  digitalWrite(G2B, LOW);
   digitalWrite(A, (channel & 1));
   digitalWrite(B, ((channel >> 1) & 1));
   digitalWrite(C, ((channel >> 2) & 1));
+  //digitalWrite(G2B, LOW);
+  delay(1);
 }
 
 /* Print temperature values from MUX thermos  */
-void printTemp(int temp_c, int i){
-  Serial.println("temp reading with MUX:");
-  Serial.print("Thermoucouple ");
+void printTemp(double temp_c, int i){
+  Serial.print("MUX ");
   Serial.print(i);
-  Serial.print(" temp: ");
+  Serial.print("\t temp: ");
   Serial.print(temp_c);
   Serial.println(" *C");
   delay(10);
