@@ -180,4 +180,7 @@
  .pio/libdeps/esp32-s3-devkitc-1/Adafruit\ Unified\ Sensor/Adafruit_Sensor.h \
  C:/Users/cardi/.platformio/packages/framework-arduinoespressif32/cores/esp32/Print.h \
  .pio/libdeps/esp32-s3-devkitc-1/DHT\ sensor\ library/DHT.h \
- .pio/libdeps/esp32-s3-devkitc-1/DHT\ sensor\ library/DHT_U.h
+ .pio/libdeps/esp32-s3-devkitc-1/DHT\ sensor\ library/DHT_U.h \
+ C:/Users/cardi/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/driver/include/driver/uart.h \
+ C:/Users/cardi/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/esp_ringbuf/include/freertos/ringbuf.h \
+ C:/Users/cardi/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/hal/include/hal/uart_types.h

@@ -53,7 +53,7 @@ double temp_c;
 //  | 11  47 |  --->  |  2   7 |
 //  | 10  48 |        |  1   8 |
 //  | 5V  5V |        | 5V  5V |
-//  |_______ |        |_______ |
+//  |________|        |________|
 int arr[8] = {SUB1, SUB2, SUB3, SUB4, SUB5, SUB6, SUB7, SUB8};
 void setup() {
   Serial.begin(BAUD_RATE);
@@ -70,7 +70,7 @@ void setup() {
 
   pinMode(DHTPIN1, INPUT); // input         humidity sensors
   pinMode(DHTPIN2, INPUT); // input         humidity sensors
-  pinMode(SUB1, OUTPUT);   // input/output  pinhears on main board
+  pinMode(SUB1, INPUT);    // input/output  pinhears on main board
   pinMode(SUB2, OUTPUT);   // input/output  pinhears on main board
   pinMode(SUB3, OUTPUT);   // input/output  pinhears on main board
   pinMode(SUB4, OUTPUT);   // input/output  pinhears on main board
@@ -80,20 +80,14 @@ void setup() {
   pinMode(SUB8, OUTPUT);   // input/output  pinhears on main board
   /* -----initialize out pins----- */
   digitalWrite(G1, HIGH);   // based on sn74hc138 data sheet so that no sensors has cs enabled
-  //digitalWrite(G2B, HIGH);   // based on sn74hc138 data sheet so that no sensors has cs enabled
+  digitalWrite(G2B, HIGH);   // based on sn74hc138 data sheet so that no sensors has cs enabled
   digitalWrite(G2A, LOW);   // based on sn74hc138 data sheet so that no sensors has cs enableds
   Serial.println("Flashed & Running.");
+  digitalWrite(SUB2, HIGH);
   dht1.begin();
   // dht2.begin();
   temp9.begin();    // U13 sensor
-  MUX.begin();    // U12 sensor
-//  temp6.begin();    // U11 sensor
-//  temp5.begin();    // U10 sensor
-//  temp4.begin();    // U9 sensor
-//  temp3.begin();    // U8 sensor
-//  temp2.begin();    // U7 sensor
-//  temp1.begin();    // U6 sensor
-//  temp0.begin();    // U5 sensor
+  // MUX.begin();    // U12 sensor
 }
 
 void loop() {
@@ -101,8 +95,12 @@ void loop() {
   int read = Serial.parseInt();
 
   /* get humidity sensor data */
+  if(digitalRead(SUB1)){digitalWrite(SUB5, LOW);}
+  else{digitalWrite(SUB5, HIGH);}
+
   if (read == 8){
-    getHumData();
+    double H = getHumData();
+    Serial.write((byte) H); //j added this
   }
 
   /* get lone thermocouple */
@@ -110,59 +108,25 @@ void loop() {
     temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
     temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
     temp_c = temp9.readCelsius();       // temp sensor U13 temp reading
+    double inter = temp9.readInternal();
     Serial.print("temp sensor:\t temp:");
     Serial.print(temp_c);
+    Serial.println(" *C");
+    Serial.print("internal:\t");
+    Serial.print(inter);
     Serial.println(" *C");
   }
   /* get thermocouples in MUX data */
   if (10 <= read && read <18){
     uint8_t i = read % 10;
     setMuxChannel(i);
-    if (i == 0){
-      digitalWrite(A, LOW);
-      digitalWrite(B, LOW);
-      digitalWrite(C, LOW);
-    }
-    if (i == 1){
-      digitalWrite(A, HIGH);
-      digitalWrite(B, LOW);
-      digitalWrite(C, LOW);
-    }
-    if (i == 2){
-      digitalWrite(A, LOW);
-      digitalWrite(B, HIGH);
-      digitalWrite(C, LOW);
-    }
-    if (i == 3){
-      digitalWrite(A, HIGH);
-      digitalWrite(B, HIGH);
-      digitalWrite(C, LOW);
-    }
-    if (i == 4){
-      digitalWrite(A, LOW);
-      digitalWrite(B, LOW);
-      digitalWrite(C, HIGH);
-    }
-    if (i == 5){
-      digitalWrite(A, HIGH);
-      digitalWrite(B, LOW);
-      digitalWrite(C, HIGH);
-    }
-    if (i == 6){
-      digitalWrite(A, LOW);
-      digitalWrite(B, HIGH);
-      digitalWrite(C, HIGH);
-    }
-    if (i == 7){
-      digitalWrite(A, HIGH);
-      digitalWrite(B, HIGH);
-      digitalWrite(C, HIGH);
-    }
-    delay(5);
+    //delay(5);
     temp_c = MUX.readCelsius();
     temp_c = MUX.readCelsius();
     temp_c = MUX.readCelsius();
+    digitalWrite(G2B, HIGH);
     printTemp(temp_c, i);
+    delay(100);
   }
 
 
@@ -174,7 +138,7 @@ void loop() {
   delay(100);
 }
 
-void getHumData(){
+double getHumData(){
   double H = dht1.readHumidity();        // humidity sensor J10 humidity reading
   double t = dht1.readTemperature();     // humidity sensot J10 temp reading in *C
  
@@ -183,11 +147,11 @@ void getHumData(){
   Serial.print(" %\t temp:");
   Serial.print(t);
   Serial.println(" *C");
-  
+  return H;
 }
 
 
-/* Set pins for the power subsystem board (note: works) */
+
 void powerBoard(int read){
   int i, port, val;
   if (read >= 30){
@@ -216,8 +180,8 @@ void setMuxChannel(int channel) {
   digitalWrite(A, (channel & 1));
   digitalWrite(B, ((channel >> 1) & 1));
   digitalWrite(C, ((channel >> 2) & 1));
-  //digitalWrite(G2B, LOW);
-  delay(100);
+  digitalWrite(G2B, LOW);
+  //delay(100);
 }
 
 /* Print temperature values from MUX thermos  */
