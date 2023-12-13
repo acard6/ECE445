@@ -6,3 +6,5 @@ The PDFs are all written reports of our work from proposal to design to final pa
 
 Contributions for the code were made by Alan Cardiel, and the hardware and PCB was made possible by Seunghwan Hong.
 We used the Adafruit sensor, DHT, and Adafruit MAX31855 libraries in our work. 
+
+video of our board and functionalities: https://youtu.be/MjIq5uZeva4
